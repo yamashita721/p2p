@@ -7,7 +7,7 @@ export default function App() {
   const [text, setText] = useState("");
 
   useEffect(() => {
-    // 1. Listeners
+    // Listeners
     socket.on("connect", () => setIsConnected(true));
     socket.on("disconnect", () => setIsConnected(false));
     
@@ -28,7 +28,7 @@ export default function App() {
         setMessages((prev) => [...prev, `System: ${msg}`]);
     });
 
-    // 2. Cleanup listeners (Do NOT call socket.disconnect() here anymore)
+    //Cleanup listeners 
     return () => {
       socket.off("connect");
       socket.off("disconnect");

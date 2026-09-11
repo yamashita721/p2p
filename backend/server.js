@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        // Checks for a live URL first, defaults to localhost for local testing
+        
         origin: process.env.CLIENT_URL || "http://localhost:5173",
         methods: ["GET", "POST"]
     }
@@ -21,7 +21,7 @@ let waitingRoom = [];
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // 1. EXTRACTED LOGIC: A reusable function to find a partner
+    
     const matchmake = () => {
         if (waitingRoom.length > 0) {
             const partner = waitingRoom.shift(); 
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
     // Run matchmaking the moment they connect
     matchmake();
 
-    // 2. THE SKIP EVENT: Handle the "Next" button
+    // SKIP EVENT - Handle Next button
     socket.on("skip", () => {
         // If they were actively chatting, break up the chat
         if (socket.partnerId) {

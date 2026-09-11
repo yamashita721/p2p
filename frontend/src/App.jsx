@@ -2,14 +2,19 @@ import { useEffect, useState } from 'react';
 import { socket } from './socket';
 
 export default function App() {
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(socket.connected);
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState(""); // Tracks the input box
+  const [text, setText] = useState("");
 
   useEffect(() => {
-    // 1. Listeners first
+    // 1. Listeners
     socket.on("connect", () => setIsConnected(true));
     socket.on("disconnect", () => setIsConnected(false));
+    
+    // THE MISSING LISTENER
+    socket.on("waiting", (msg) => {
+        setMessages((prev) => [...prev, `System: ${msg}`]);
+    });
     
     socket.on("match_success", (msg) => {
         setMessages((prev) => [...prev, `System: ${msg}`]);
@@ -23,30 +28,29 @@ export default function App() {
         setMessages((prev) => [...prev, `System: ${msg}`]);
     });
 
-    // 2. Connect second
-    socket.connect();
-
+    // 2. Cleanup listeners (Do NOT call socket.disconnect() here anymore)
     return () => {
       socket.off("connect");
       socket.off("disconnect");
+      socket.off("waiting");
       socket.off("match_success");
       socket.off("chat_message");
       socket.off("partner_disconnected");
-      socket.disconnect();
     };
   }, []);
 
-  // 3. The Send Function
   const handleSend = (e) => {
     e.preventDefault();
     if (text.trim() === "") return;
     
-    // Fire the message across the WebSocket to the backend
     socket.emit("chat_message", text);
-    
-    // Add the message to our own screen (since the server only sends it to the partner)
     setMessages((prev) => [...prev, `You: ${text}`]);
-    setText(""); // Clear the input box
+    setText("");
+  };
+
+  const handleSkip = () => {
+    setMessages([]); 
+    socket.emit("skip");
   };
 
   return (
@@ -63,6 +67,13 @@ export default function App() {
       </div>
       
       <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px' }}>
+        <button 
+          type="button" 
+          onClick={handleSkip} 
+          style={{ padding: '10px 20px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Next
+        </button>
         <input 
           style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
           value={text}

@@ -4,12 +4,16 @@ const {Server} = require("socket.io");
 
 const app =express();
 
-
 app.use(express.static("public"));
 
 const server = http.createServer(app);
 
-const io= new Server(server);  //CONNECTING SOCKET.IO WITH HTTP SERVER
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"]
+    }
+}); //CONNECTING SOCKET.IO WITH HTTP SERVER
 
 
 let waitingRoom = [];
@@ -49,16 +53,20 @@ io.on("connection", (socket)=>{
         console.log(`User ${socket.id} disconnected.`);
 
         waitingRoom = waitingRoom.filter((waitingUser) => waitingUser.id !== socket.id);
+        
+        // This 'if' statement prevents the crash!
+        if (socket.partnerId) {
             io.to(socket.partnerId).emit("partner_disconnected", "Stranger has disconnected.");
             const partnerSocket = io.sockets.sockets.get(socket.partnerId);
             if (partnerSocket) {
                 partnerSocket.partnerId = null;
             }
+        }
     });
 
 
 });
 
-server.listen(3005, ()=>{
-    console.log(`Socket and express are running at 3005...`);
+server.listen(3006, ()=>{
+    console.log(`Socket and express are running at 3006...`);
 })

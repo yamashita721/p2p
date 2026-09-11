@@ -10,6 +10,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
+        // Checks for a live URL first, defaults to localhost for local testing
         origin: process.env.CLIENT_URL || "http://localhost:5173",
         methods: ["GET", "POST"]
     }

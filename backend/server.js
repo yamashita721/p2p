@@ -81,6 +81,8 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3006, () => {
-    console.log(`Socket and express are running at 3006...`);
+const PORT = process.env.PORT || 3006;
+
+server.listen(PORT, () => {
+    console.log(`Socket and express are running on port ${PORT}...`);
 });

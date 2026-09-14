@@ -31,8 +31,31 @@ body { background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont
 .btn-next { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 24px; padding: 12px 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-next:hover { background: #e5e7eb; color: #111; }
 
-.chat-input { flex: 1; padding: 14px 20px; border: 1px solid #e5e7eb; border-radius: 24px; outline: none; font-size: 0.95rem; background: #f9fafb; transition: border 0.2s, background 0.2s; }
+.chat-input { 
+  flex: 1; 
+  min-width: 0; 
+  padding: 14px 20px; 
+  border: 1px solid #e5e7eb; 
+  border-radius: 24px; 
+  outline: none; 
+  font-size: 0.95rem; 
+  background: #f9fafb; 
+  transition: border 0.2s, background 0.2s; 
+}
 .chat-input:focus { border-color: #0084ff; background: #fff; }
 
 .btn-send { background: #0084ff; color: white; border: none; border-radius: 24px; padding: 12px 24px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .btn-send:hover { background: #0073e6; }
+
+
+@media (max-width: 480px) {
+  .app-container { padding: 0; }
+  .chat-window { 
+    height: 100vh; 
+    height: 100dvh; 
+    border-radius: 0; 
+  }
+  .chat-input-area { padding: 12px 10px; gap: 8px; }
+  .btn-next, .btn-send { padding: 10px 14px; font-size: 0.9rem; }
+  .chat-input { padding: 10px 14px; }
+}

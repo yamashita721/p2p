@@ -1,34 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { socket } from './socket';
+import './App.css'; // Import the new styles!
 
 export default function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const messagesEndRef = useRef(null); // Used for auto-scrolling
+
+  // Auto-scroll to bottom whenever messages array changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
-    // Listeners
     socket.on("connect", () => setIsConnected(true));
     socket.on("disconnect", () => setIsConnected(false));
     
-    // THE MISSING LISTENER
     socket.on("waiting", (msg) => {
-        setMessages((prev) => [...prev, `System: ${msg}`]);
+        setMessages((prev) => [...prev, { sender: 'system', text: msg }]);
     });
     
     socket.on("match_success", (msg) => {
-        setMessages((prev) => [...prev, `System: ${msg}`]);
+        setMessages((prev) => [...prev, { sender: 'system', text: msg }]);
     });
     
     socket.on("chat_message", (msg) => {
-        setMessages((prev) => [...prev, `Stranger: ${msg}`]);
+        setMessages((prev) => [...prev, { sender: 'stranger', text: msg }]);
     });
     
     socket.on("partner_disconnected", (msg) => {
-        setMessages((prev) => [...prev, `System: ${msg}`]);
+        setMessages((prev) => [...prev, { sender: 'system', text: msg }]);
     });
 
-    //Cleanup listeners 
     return () => {
       socket.off("connect");
       socket.off("disconnect");
@@ -44,7 +48,7 @@ export default function App() {
     if (text.trim() === "") return;
     
     socket.emit("chat_message", text);
-    setMessages((prev) => [...prev, `You: ${text}`]);
+    setMessages((prev) => [...prev, { sender: 'you', text }]);
     setText("");
   };
 
@@ -54,36 +58,47 @@ export default function App() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h1>P2P CHAT</h1>
-      <p style={{ color: isConnected ? 'green' : 'red', fontWeight: 'bold' }}>
-        Status: {isConnected ? "Connected" : "Disconnected"}
-      </p>
-      
-      <div style={{ border: '2px solid #333', height: '400px', overflowY: 'auto', marginBottom: '10px', padding: '15px', borderRadius: '8px' }}>
-        {messages.map((m, i) => (
-          <p key={i} style={{ margin: '5px 0' }}>{m}</p>
-        ))}
+    <div className="app-container">
+      <div className="chat-window">
+        
+        {/* Header */}
+        <div className="chat-header">
+          <h1>P2P CHAT</h1>
+          <div className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
+            <div className="status-dot"></div>
+            {isConnected ? "Connected" : "Disconnected"}
+          </div>
+        </div>
+        
+        {/* Messages Area */}
+        <div className="chat-messages">
+          {messages.map((m, i) => (
+            <div key={i} className={`message ${m.sender}`}>
+              {m.text}
+            </div>
+          ))}
+          {/* Invisible div to scroll down to */}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* Input Area */}
+        <form onSubmit={handleSend} className="chat-input-area">
+          <button type="button" onClick={handleSkip} className="btn-next">
+            Next
+          </button>
+          <input 
+            className="chat-input"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+            autoComplete="off"
+          />
+          <button type="submit" className="btn-send">
+            Send
+          </button>
+        </form>
+
       </div>
-      
-      <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px' }}>
-        <button 
-          type="button" 
-          onClick={handleSkip} 
-          style={{ padding: '10px 20px', background: '#ff4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Next
-        </button>
-        <input 
-          style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-        />
-        <button type="submit" style={{ padding: '10px 20px', background: '#000', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Send
-        </button>
-      </form>
     </div>
   );
 }
